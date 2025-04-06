@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { useMobile } from "@/hooks/use-mobile";
 import { sendMessage } from "@/lib/api";
 import { speechToText, textToSpeech } from "@/lib/openai";
+import { titleGen } from "@/lib/api";
 
 type Message = {
   id: string;
@@ -74,13 +75,7 @@ export function Chat() {
     conversations.find((c) => c.id === currentConversationId) ||
     conversations[0];
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [currentConversation?.messages]);
+  
 
   const startRecording = async () => {
     try {
@@ -160,6 +155,11 @@ export function Chat() {
       timestamp: new Date(),
     };
 
+    const title = await titleGen([{
+      content: messageToSend,
+      role: "user"
+  }]);
+
     // Update conversation with user message
     const updatedConversations = conversations.map((conv) => {
       if (conv.id === currentConversationId) {
@@ -167,9 +167,7 @@ export function Chat() {
           ...conv,
           messages: [...conv.messages, userMessage],
           title:
-            conv.messages.length === 0
-              ? messageToSend.slice(0, 30)
-              : conv.title,
+            title
         };
       }
       return conv;
@@ -391,14 +389,15 @@ export function Chat() {
             </div>
             <div className="border-t-[1.5px] bg-black/25 p-4">
               <div className="mx-auto flex max-w-3xl items-end gap-2">
-                <Textarea
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
-                  className="min-h-[60px] resize-none text-white"
-                  rows={1}
-                />
+              <Textarea
+  value={inputValue}
+  onChange={(e) => setInputValue(e.target.value)}
+  onKeyDown={handleKeyDown}
+  placeholder="Type your message..."
+  className="min-h-[60px] max-h-[200px] overflow-y-auto resize-none text-white"
+  rows={1}
+/>
+
                 <Button
                   onClick={() => handleSendMessage()}
                   disabled={!inputValue.trim() || isLoading}

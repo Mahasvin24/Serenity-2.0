@@ -2,7 +2,7 @@ import Groq from "groq-sdk";
 
 type Message = {
   content: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
 };
 
 const MEMORY_KEY = "global_chat_memory";
@@ -67,7 +67,7 @@ export async function sendMessage(
     ];
 
     const groq = new Groq({
-      apiKey: "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",
+      apiKey: "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",
       dangerouslyAllowBrowser: true,
     });
 
@@ -80,5 +80,34 @@ export async function sendMessage(
   } catch (err) {
     console.error("API error:", err);
     return "Sorry, I encountered an error while processing your request.";
+  }
+}
+
+
+export async function titleGen(messages: Message[],) {
+  const fullMessages: Message[] = [
+    {
+      "role": "system",
+      "content": "This is the users first message. Based on this, generate a vague title for this chat in a maximum of 2 words."
+    },
+    ...messages
+  ]
+
+  try {
+    const groq = new Groq({
+      apiKey: "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",
+      dangerouslyAllowBrowser: true,
+    });
+  
+    const response = await groq.chat.completions.create({
+      messages: fullMessages,
+      model: "llama-3.3-70b-versatile"
+    })
+
+
+    return response.choices[0].message.content || "";
+
+  } catch {
+    console.log("Something went wrong!");
   }
 }
