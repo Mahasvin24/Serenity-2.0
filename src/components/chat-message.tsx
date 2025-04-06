@@ -18,7 +18,7 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
-  const [copied, setCopied] = useState(false);
+  const [_, setCopied] = useState(false);
   const [feedback, setFeedback] = useState<"like" | "dislike" | null>(null);
 
   const copyToClipboard = () => {
