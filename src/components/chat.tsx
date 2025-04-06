@@ -276,7 +276,7 @@ export function Chat() {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute right-4 top-4 z-50"
+        className="absolute right-4 top-4 z-50 text-white bg-black"
         onClick={() => setSettingsOpen(true)}
       >
         <Settings className="h-5 w-5" />
