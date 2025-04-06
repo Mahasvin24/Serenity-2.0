@@ -19,7 +19,7 @@ export const speechToText = async (
         headers: {
           Authorization: `Bearer ${
             process.env.NEXT_PUBLIC_GROQ_API_KEY ||
-            "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"
+            "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"
           }`,
         },
         body: formData,
@@ -44,7 +44,7 @@ export const textToSpeech = async (textToSay: string): Promise<string> => {
     const groq = new Groq({
       apiKey:
         process.env.NEXT_PUBLIC_GROQ_API_KEY ||
-        "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",
+        "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",
       dangerouslyAllowBrowser: true,
     });
 
