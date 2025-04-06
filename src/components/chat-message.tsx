@@ -18,7 +18,7 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
-  const [_, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [feedback, setFeedback] = useState<"like" | "dislike" | null>(null);
 
   const copyToClipboard = () => {
@@ -26,6 +26,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (copied) {
+    console.log("copied!")
+  }
 
   return (
     <div

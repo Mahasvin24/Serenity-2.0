@@ -1,4 +1,3 @@
-import OpenAI from "openai";
 import Groq from "groq-sdk";
 
 // Speech to text function that accepts a file directly

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 type Conversation = {
   id: string;
   title: string;
-  messages: any[];
+  messages: string[];
   createdAt: Date;
 };
 
