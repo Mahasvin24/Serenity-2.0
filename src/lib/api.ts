@@ -13,40 +13,28 @@ function loadMemory(): string {
     return "";
   }
 
-  const stored = localStorage.getItem(MEMORY_KEY);
-  return stored ? stored : "";
+  return localStorage.getItem(MEMORY_KEY) || "";
 }
 
-function appendMemory(newSummary: string) {
+function appendMemory(userMessages: Message[]) {
   if (typeof window === "undefined") return;
 
   const current = loadMemory();
-  const updated = current
-    ? `${current.trim()}\n- ${newSummary.trim()}`
-    : `- ${newSummary.trim()}`;
+  const newEntries = userMessages
+    .filter((m) => m.role === "user" && m.content.toLowerCase().trim() !== "clear memory")  // Exclude 'clear memory' command
+    .map((m) => `- ${m.content.trim()}`)
+    .join("\n");
+
+  const updated = current ? `${current.trim()}\n${newEntries}` : newEntries;
 
   localStorage.setItem(MEMORY_KEY, updated);
   console.log("[Memory Saved]:", updated);
 }
 
-async function summarizeConversation(messages: Message[]): Promise<string> {
-  const groq = new Groq({
-    apiKey: "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",
-    dangerouslyAllowBrowser: true,
-  });
-
-  const response = await groq.chat.completions.create({
-    messages: [
-      {
-        role: "system",
-        content: "Summarize the following conversation in 1-2 sentences.",
-      },
-      ...messages,
-    ],
-    model: "llama-3.3-70b-versatile",
-  });
-
-  return response.choices[0]?.message?.content || "";
+function clearMemory() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(MEMORY_KEY);
+  console.log("[Memory Cleared]");
 }
 
 export async function sendMessage(
@@ -54,31 +42,35 @@ export async function sendMessage(
   model: string = "llama-3.3-70b-versatile"
 ): Promise<string> {
   try {
-    const groq = new Groq({
-      apiKey: "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",
-      dangerouslyAllowBrowser: true,
-    });
+    const lastUserMsg = messages
+      .slice()
+      .reverse()
+      .find((m) => m.role === "user")?.content.toLowerCase().trim();
 
-    // 1. Summarize conversation
-    const newSummary = await summarizeConversation(messages);
-    console.log("[New Summary]:", newSummary);
+    if (lastUserMsg === "clear memory") {
+      clearMemory();
+      return "Memory has been cleared.";
+    }
 
-    // 2. Append to memory
-    appendMemory(newSummary);
+    // Append user messages to memory, excluding 'clear memory'
+    appendMemory(messages);
 
-    // 3. Load full memory
     const sharedMemory = loadMemory();
     const customInstruction = `Be a compassionate listener and emotional support. Acknowledge my feelings, ask thoughtful questions to help me reflect, and offer occasional advice only when helpful. Keep the tone casual and responses short like a real conversation. Check in on how I’m feeling every now and then, and offer breathing exercises if the conversation dies down or I have nothing to say. If my discussion is not relevant to mental health or human well being at all, say that you are not built to answer those kinds of questions and redirect back to questions about their well being.`;
 
     const fullMessages: Message[] = [
       {
         role: "system",
-        content: `${customInstruction}\nHere is what you remember about the user across all conversations:\n${sharedMemory}`,
+        content: `${customInstruction}\n\nHere is what the user has shared previously:\n${sharedMemory}`,
       },
       ...messages,
     ];
 
-    // 4. Send message
+    const groq = new Groq({
+      apiKey: "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",
+      dangerouslyAllowBrowser: true,
+    });
+
     const response = await groq.chat.completions.create({
       messages: fullMessages,
       model,
